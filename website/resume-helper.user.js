@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         简历投递助手
 // @namespace    https://0xffff87.github.io
-// @version      1.2.1
-// @description  AI驱动的简历自动填写，支持百度、腾讯、字节跳动等主流招聘网站。在页面右下角点击悬浮按钮开始填写。
+// @version      1.2.2
+// @description  AI驱动的简历自动填写，支持百度、腾讯、字节跳动等主流招聘网站。⚠️推荐安装Chrome扩展版（功能更完整）：https://0xffff87.github.io/website/resume-helper-extension.zip 下载解压后在chrome://extensions/开发者模式加载。
 // @author       0xffff87
 // @match        *://*/*
 // @grant        GM_getValue
