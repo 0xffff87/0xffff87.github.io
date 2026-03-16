@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         简历投递助手
 // @namespace    https://0xffff87.github.io
-// @version      1.1.1
+// @version      1.2.0
 // @description  AI驱动的简历自动填写，支持百度、腾讯、字节跳动等主流招聘网站。在页面右下角点击悬浮按钮开始填写。
 // @author       0xffff87
 // @match        *://*/*
