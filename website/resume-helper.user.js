@@ -496,7 +496,7 @@
     function searchPT(f, kws) { if (!kws) return false; var ctx = (f.context || '') + ' ' + (f.nearby || '') + ' ' + (f.parentText || ''); for (var k of kws) { if (ctx.indexOf(k) !== -1) return true; } return false; }
     function isDateField(f) { var cls = (f.className || '').toLowerCase(); if (/year|month|date-?picker|calendar/.test(cls)) return true; var lbl = (f.label || '').trim(); if (/^(年|月|开始时间|结束时间)$/.test(lbl)) return true; return false; }
     var rules = [
-      { label_re: /^(?:姓名|真实姓名|请输入真实姓名|请输入姓名|名字)$/, name_re: /^(?:name|姓名)$/, parent_kw: ['姓名','名字','真实姓名'], value: basic.name, unique: true, key: 'name' },
+      { label_re: /^(?:姓名|真实姓名|请输入真实姓名|请输入姓名|请输入.*姓名|名字)$/, name_re: /^(?:name|fullName|realname|姓名)$/i, parent_kw: ['姓名','名字','真实姓名'], value: basic.name, unique: true, key: 'name' },
       { label_re: /^(?:区号)$/, class_re: /telephone-region/, parent_kw: ['区号'], value: '+86', unique: true, key: 'areaCode' },
       { label_re: /(?:手机|电话|联系方式|手机号)/, name_re: /^(?:phone|mobile|tel)$/, class_re: /telephone-input|phone-input/, parent_kw: ['手机','电话','联系方式','手机号码'], value: basic.phone, unique: true, key: 'phone' },
       { label_re: /(?:邮箱|邮件|电子邮箱)/, name_re: /^(?:e-?mail|email|邮箱)$/, parent_kw: ['邮箱','邮件'], value: basic.email, unique: true, key: 'email' },
@@ -510,17 +510,20 @@
       { label_re: /(?:通信地址|住址|通讯地址|地址|详细住址)/, name_re: /^(?:address)$/i, parent_kw: ['通信地址','地址','住址'], value: basic.address, unique: true, key: 'address' },
       { label_re: /(?:选择国家|当前居住国家|居住国家|当前所在国家)/, name_re: /^(?:currentCountry)$/i, parent_kw: ['当前居住国家','居住国家'], value: basic.currentCountry || '中国', unique: true, key: 'currentCountry' },
       { label_re: /(?:现居住|所在地|当前城市|居住城市|省\/市|当前所在城市)/, name_re: /^(?:currentCity)$/i, parent_kw: ['现居住','所在地','当前城市','当前所在城市'], value: basic.currentCity, unique: true, key: 'currentCity' },
-      { label_re: /(?:意向.*城市|意愿.*城市|意向.*地点|目标.*城市|期望.*城市)/, parent_kw: ['意向工作城市','期望工作城市'], value: basic.targetCity, unique: true, key: 'targetCity' },
+      { label_re: /(?:意向.*城市|意愿.*城市|意向.*地点|目标.*城市|期望.*城市|期望.*地点)/, name_re: /^(?:targetCity|preferred_city_list|expectCity)$/i, parent_kw: ['意向工作城市','意愿城市','意向地点','期望工作城市','期望城市','期望工作地点'], value: basic.targetCity, unique: true, key: 'targetCity' },
+      { label_re: /(?:意向.*职位|目标.*职位|期望.*职位|期望.*岗位|目标.*岗位|求职.*岗位)/, name_re: /^(?:targetJob|targetPosition|expectPosition|expectJob)$/i, parent_kw: ['意向职位','目标职位','期望职位','求职岗位'], value: basic.targetPosition, unique: true, key: 'targetPosition' },
       { label_re: /(?:期望.*薪|年薪|月薪|期望薪资)/, parent_kw: ['期望年薪','年薪','月薪','期望薪资'], value: basic.expectedSalary, unique: true, key: 'expectedSalary' },
       { label_re: /(?:自我评价|自我介绍|自我描述|补充信息|简介|介绍自己)/, parent_kw: ['自我评价','自我介绍','补充信息','介绍自己'], value: basic.summary || resumeData.summary, unique: true, key: 'summary' },
       { label_re: /^(?:学校|学校名称|请输入就读学校)$/, name_re: /^(?:school|学校名称)$/, parent_kw: ['学校名称','学校'], value: edu.school, unique: false, key: 'school', skip_date: true },
       { label_re: /^(?:专业|专业名称)$/, name_re: /^(?:major|field_of_study)$/, parent_kw: ['专业名称','专业'], value: edu.major, unique: false, key: 'major', skip_date: true },
       { label_re: /^(?:学历|最高学历)$/, name_re: /^(?:degree|education)$/, parent_kw: ['学历','最高学历'], value: edu.degree, unique: false, key: 'degree', skip_date: true, only_select: true },
       { label_re: /^(?:公司名称|企业名称)$/, name_re: /^(?:company|companyName)$/, parent_kw: ['公司名称','企业名称'], value: work.company, unique: false, key: 'company', skip_date: true },
-      { label_re: /^(?:工作职位|岗位名称|职位名称)$/, name_re: /^(?:positionName|title|职位名称)$/, parent_kw: ['岗位名称','职位名称','工作职位'], value: work.position || work.title, unique: false, key: 'position', skip_date: true },
+      { label_re: /^(?:工作职位|岗位名称|职位名称|请输入.*职位)$/, name_re: /^(?:positionName|jobTitle|title|职位名称)$/i, parent_kw: ['岗位名称','职位名称','工作职位'], value: work.position || work.title, unique: false, key: 'position', skip_date: true },
       { label_re: /^(?:工作描述|工作内容)$/, name_re: /^(?:workDesc)$/, parent_kw: ['工作职责','工作内容','工作描述'], value: work.description, unique: false, key: 'workDesc', skip_date: true },
-      { label_re: /^(?:项目名称)$/, parent_kw: ['项目名称'], value: proj.name, unique: false, key: 'projectName', skip_date: true },
-      { label_re: /(?:GPA|绩点|成绩)/, parent_kw: ['GPA','绩点'], value: edu.gpa, unique: true, key: 'gpa', skip_date: true },
+      { label_re: /^(?:项目名称|请输入.*项目名称)$/, name_re: /^(?:projectName|subjectName)$/i, parent_kw: ['项目名称'], value: proj.name, unique: false, key: 'projectName', skip_date: true },
+      { label_re: /(?:GPA|绩点)/, name_re: /^(?:gpa)$/i, parent_kw: ['GPA','GPA成绩','绩点'], value: edu.gpa, unique: true, key: 'gpa', skip_date: true },
+      { label_re: /(?:专业技能|技能特长|技术技能|请.*技能)/, name_re: /^(?:skills|技能)$/i, parent_kw: ['专业技能','技能特长','技能'], value: resumeData.skills || basic.skills, unique: true, key: 'skills', skip_date: true },
+      { label_re: /(?:语言能力|语言水平|外语)/, name_re: /^(?:languages|语言)$/i, parent_kw: ['语言能力','语言水平','外语'], value: resumeData.languages || basic.languages, unique: true, key: 'languages', skip_date: true },
       { label_re: /(?:行业类别|所在行业|行业)/, parent_kw: ['行业类别','所在行业'], value: basic.industry || '互联网/IT', unique: true, key: 'industry', skip_date: true, only_select: true },
     ];
     var matched = {}, usedKeys = {}, nonUniqueCount = {};
