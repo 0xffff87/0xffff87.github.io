@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         简历投递助手
 // @namespace    https://0xffff87.github.io
-// @version      1.2.0
+// @version      1.2.1
 // @description  AI驱动的简历自动填写，支持百度、腾讯、字节跳动等主流招聘网站。在页面右下角点击悬浮按钮开始填写。
 // @author       0xffff87
 // @match        *://*/*
@@ -20,8 +20,10 @@
 (function () {
   'use strict';
 
-  if (window.__resumeHelperLoaded) return;
-  window.__resumeHelperLoaded = true;
+  if (window.__resumeHelperUserscriptLoaded) return;
+  window.__resumeHelperUserscriptLoaded = true;
+
+  console.log('[简历助手-油猴] 脚本开始执行 v1.2.1');
 
   // ========== 注入样式 ==========
   GM_addStyle(`
@@ -626,7 +628,9 @@
 
   // ========== 初始化 ==========
   function init() {
+    console.log('[简历助手-油猴] init() 开始，正在创建FAB...');
     createFAB();
+    console.log('[简历助手-油猴] FAB已创建');
     document.addEventListener('keydown', (e) => {
       if (e.ctrlKey && e.shiftKey && e.key === 'F') {
         e.preventDefault();
