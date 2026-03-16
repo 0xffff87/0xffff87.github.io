@@ -102,9 +102,18 @@
       </div>
       <div class="rh-body">
         <div class="rh-status" id="rh-status">
-          <p>点击下方按钮开始智能填写当前页面的表单。</p>
-          <p style="margin-top:8px;font-size:12px;color:#999;">支持原生输入框、下拉框以及自定义组件（如div模拟的选择器、日期选择器等）。</p>
+          <p id="rh-data-status" style="font-weight:500;color:#888;">未加载简历数据</p>
+          <p style="margin-top:6px;font-size:12px;color:#999;">请先在线编辑简历或导入 JSON 文件，然后点击"开始填写"。</p>
         </div>
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <button class="rh-btn rh-btn-secondary" id="rh-btn-online" style="flex:1;font-size:12px;padding:6px 0;">
+            在线编辑简历
+          </button>
+          <button class="rh-btn rh-btn-secondary" id="rh-btn-import" style="flex:1;font-size:12px;padding:6px 0;">
+            导入 JSON
+          </button>
+        </div>
+        <input type="file" id="rh-import-file" accept=".json" style="display:none;">
       </div>
       <div class="rh-actions">
         <button class="rh-btn rh-btn-secondary" id="rh-btn-close">关闭</button>
@@ -127,12 +136,60 @@
       });
     });
 
+    document.getElementById('rh-btn-online').addEventListener('click', () => {
+      window.open('https://0xffff87.github.io/website/', '_blank');
+    });
+
+    document.getElementById('rh-btn-import').addEventListener('click', () => {
+      document.getElementById('rh-import-file').click();
+    });
+
+    document.getElementById('rh-import-file').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        try {
+          const data = JSON.parse(evt.target.result);
+          if (!data.basic || !data.basic.name) {
+            log('error', '导入失败: 文件格式不正确');
+            return;
+          }
+          chrome.storage.local.set({ resumeData: data }, () => {
+            log('info', '简历数据已导入: ' + data.basic.name);
+            updateDataStatus();
+          });
+        } catch (err) {
+          log('error', '导入失败: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = '';
+    });
+
     document.getElementById('rh-btn-debug').addEventListener('click', () => {
       showDebugPanel();
     });
 
     document.getElementById('rh-btn-fill').addEventListener('click', () => {
       startFillProcess();
+    });
+
+    updateDataStatus();
+  }
+
+  function updateDataStatus() {
+    chrome.storage.local.get('resumeData', (result) => {
+      const el = document.getElementById('rh-data-status');
+      if (!el) return;
+      const data = result.resumeData;
+      if (data && data.basic && data.basic.name) {
+        el.textContent = '✓ ' + data.basic.name + ' 的简历已加载';
+        el.style.color = '#52c41a';
+      } else {
+        el.textContent = '未加载简历数据';
+        el.style.color = '#888';
+      }
     });
   }
 
