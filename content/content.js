@@ -112,6 +112,7 @@
       </div>
       <div class="rh-actions">
         <button class="rh-btn rh-btn-secondary" id="rh-btn-close">关闭</button>
+        <button class="rh-btn rh-btn-secondary" id="rh-btn-settings" style="color:#667eea;">设置</button>
         <button class="rh-btn rh-btn-secondary" id="rh-btn-debug" style="color:#e67e22;">调试</button>
         <button class="rh-btn rh-btn-primary" id="rh-btn-fill">开始填写</button>
       </div>
@@ -120,6 +121,10 @@
 
     document.getElementById('rh-btn-close').addEventListener('click', () => {
       panel.classList.remove('show');
+    });
+
+    document.getElementById('rh-btn-settings').addEventListener('click', () => {
+      chrome.runtime.sendMessage({ action: 'openOptions' });
     });
 
     document.getElementById('rh-btn-debug').addEventListener('click', () => {

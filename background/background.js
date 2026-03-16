@@ -274,6 +274,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     saveAiConfig(message.config || {}).then(() => sendResponse({ success: true }));
     return true;
   }
+
+  if (message.action === 'openOptions') {
+    chrome.runtime.openOptionsPage();
+    return false;
+  }
 });
 
 chrome.runtime.onInstalled.addListener((details) => {
