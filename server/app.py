@@ -7,6 +7,7 @@ import json
 import os
 import re
 import time
+import sqlite3
 import hashlib
 import secrets
 import traceback
@@ -23,6 +24,7 @@ DATA_DIR = '/opt/resume-backend/data'
 LOG_DIR = os.path.join(DATA_DIR, 'logs')
 KEY_FILE = os.path.join(DATA_DIR, 'keys.json')
 AI_CONFIG_FILE = os.path.join(DATA_DIR, 'ai_config.json')
+DB_FILE = os.path.join(DATA_DIR, 'resume_helper.db')
 
 os.makedirs(LOG_DIR, exist_ok=True)
 
@@ -68,41 +70,129 @@ def ensure_full_api_url(url):
     return url
 
 
-# ========== 密钥管理 ==========
+# ========== 数据库密钥管理（SQLite） ==========
 
-def load_keys():
+def get_db():
+    """获取 SQLite 数据库连接"""
+    conn = sqlite3.connect(DB_FILE)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+def init_db():
+    """初始化数据库表结构，并从旧 JSON 迁移数据"""
+    conn = get_db()
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS api_keys (
+        key TEXT PRIMARY KEY,
+        name TEXT DEFAULT 'unnamed',
+        created TEXT NOT NULL,
+        active INTEGER DEFAULT 1,
+        last_used TEXT,
+        usage_count INTEGER DEFAULT 0
+    )''')
+    conn.commit()
+
+    # 从旧 keys.json 迁移到 SQLite
     if os.path.exists(KEY_FILE):
-        with open(KEY_FILE, 'r') as f:
-            return json.load(f)
-    return {}
-
-
-def save_keys(keys):
-    with open(KEY_FILE, 'w') as f:
-        json.dump(keys, f, indent=2, ensure_ascii=False)
+        try:
+            with open(KEY_FILE, 'r') as f:
+                old_keys = json.load(f)
+            for k, v in old_keys.items():
+                c.execute(
+                    'INSERT OR IGNORE INTO api_keys (key, name, created, active) VALUES (?, ?, ?, ?)',
+                    (k, v.get('name', 'unnamed'), v.get('created', datetime.now().isoformat()),
+                     1 if v.get('active') else 0)
+                )
+            conn.commit()
+            backup = KEY_FILE + '.migrated'
+            os.rename(KEY_FILE, backup)
+            print(f'[迁移] 已将 {len(old_keys)} 个密钥从 JSON 迁移到 SQLite，旧文件备份为 {backup}')
+        except Exception as e:
+            print(f'[迁移] JSON 迁移失败: {e}')
+    conn.close()
 
 
 def init_default_key():
-    keys = load_keys()
-    if not keys:
-        default_key = 'rh-' + secrets.token_hex(16)
-        keys[default_key] = {
-            'name': 'default',
-            'created': datetime.now().isoformat(),
-            'active': True,
-        }
-        save_keys(keys)
-        print(f'[初始化] 默认密钥已生成: {default_key}')
+    """确保至少存在一个有效密钥"""
+    conn = get_db()
+    c = conn.cursor()
+    c.execute('SELECT key FROM api_keys WHERE active = 1 LIMIT 1')
+    row = c.fetchone()
+    if row:
+        print(f'[启动] 当前有效密钥: {row["key"]}')
     else:
-        for k, v in keys.items():
-            if v.get('active'):
-                print(f'[启动] 当前有效密钥: {k}')
-                break
+        default_key = 'rh-' + secrets.token_hex(16)
+        c.execute(
+            'INSERT INTO api_keys (key, name, created, active) VALUES (?, ?, ?, 1)',
+            (default_key, 'default', datetime.now().isoformat())
+        )
+        conn.commit()
+        print(f'[初始化] 默认密钥已生成: {default_key}')
+    conn.close()
 
 
 def verify_key(key):
-    keys = load_keys()
-    return key in keys and keys[key].get('active', False)
+    """验证密钥有效性，并更新使用记录"""
+    if not key:
+        return False
+    conn = get_db()
+    c = conn.cursor()
+    c.execute('SELECT active FROM api_keys WHERE key = ?', (key,))
+    row = c.fetchone()
+    if row and row['active']:
+        c.execute(
+            'UPDATE api_keys SET last_used = ?, usage_count = usage_count + 1 WHERE key = ?',
+            (datetime.now().isoformat(), key)
+        )
+        conn.commit()
+        conn.close()
+        return True
+    conn.close()
+    return False
+
+
+def load_keys():
+    """从数据库加载所有密钥（兼容旧接口）"""
+    conn = get_db()
+    c = conn.cursor()
+    c.execute('SELECT key, name, created, active, last_used, usage_count FROM api_keys')
+    keys = {}
+    for row in c.fetchall():
+        keys[row['key']] = {
+            'name': row['name'],
+            'created': row['created'],
+            'active': bool(row['active']),
+            'last_used': row['last_used'],
+            'usage_count': row['usage_count'],
+        }
+    conn.close()
+    return keys
+
+
+def create_key_in_db(name='unnamed'):
+    """在数据库中创建新密钥"""
+    new_key = 'rh-' + secrets.token_hex(16)
+    conn = get_db()
+    c = conn.cursor()
+    c.execute(
+        'INSERT INTO api_keys (key, name, created, active) VALUES (?, ?, ?, 1)',
+        (new_key, name, datetime.now().isoformat())
+    )
+    conn.commit()
+    conn.close()
+    return new_key
+
+
+def deactivate_key_in_db(key):
+    """停用指定密钥"""
+    conn = get_db()
+    c = conn.cursor()
+    c.execute('UPDATE api_keys SET active = 0 WHERE key = ?', (key,))
+    affected = c.rowcount
+    conn.commit()
+    conn.close()
+    return affected > 0
 
 
 # ========== 日志存储 ==========
@@ -800,12 +890,7 @@ def process_fill_request(fields, resume_data):
     if not remaining_indices:
         return fill_results, logs
 
-    # 测试环境：跳过AI调用，仅使用规则匹配结果
-    AI_ENABLED = False
-    if not AI_ENABLED:
-        add_log('info', '[测试模式] 跳过AI调用，仅返回规则匹配结果')
-        add_log('info', f'填充完成: 总计 {len(fill_results)} 个字段（仅规则匹配）')
-        return fill_results, logs
+    AI_ENABLED = True
 
     if not config.get('apiKey'):
         add_log('error', 'AI未配置API Key，跳过AI填充')
@@ -873,6 +958,19 @@ def auth():
         return jsonify({'success': False, 'message': '请提供密钥'}), 400
     if verify_key(key):
         return jsonify({'success': True, 'message': '授权成功'})
+    else:
+        return jsonify({'success': False, 'message': '密钥无效或已停用'}), 403
+
+
+@app.route('/api/verify', methods=['POST'])
+def verify():
+    """密钥验证接口（供插件使用，通过 Authorization Bearer 头传递密钥）"""
+    auth_header = request.headers.get('Authorization', '')
+    key = auth_header.replace('Bearer ', '') if auth_header.startswith('Bearer ') else ''
+    if not key:
+        return jsonify({'success': False, 'message': '请提供密钥'}), 400
+    if verify_key(key):
+        return jsonify({'success': True, 'message': '密钥验证通过'})
     else:
         return jsonify({'success': False, 'message': '密钥无效或已停用'}), 403
 
@@ -1003,23 +1101,31 @@ def create_key():
 
     data = request.get_json(silent=True) or {}
     name = data.get('name', 'unnamed')
-    new_key = 'rh-' + secrets.token_hex(16)
-    keys = load_keys()
-    keys[new_key] = {
-        'name': name,
-        'created': datetime.now().isoformat(),
-        'active': True,
-    }
-    save_keys(keys)
+    new_key = create_key_in_db(name)
     return jsonify({'success': True, 'key': new_key})
+
+
+@app.route('/api/keys/<key_id>', methods=['DELETE'])
+def delete_key(key_id):
+    """停用指定密钥"""
+    admin_key = request.headers.get('X-Admin-Key', '')
+    if admin_key != ADMIN_SECRET:
+        return jsonify({'success': False, 'message': '需要管理员权限'}), 403
+
+    if deactivate_key_in_db(key_id):
+        return jsonify({'success': True, 'message': '密钥已停用'})
+    else:
+        return jsonify({'success': False, 'message': '密钥不存在'}), 404
 
 
 ADMIN_SECRET = os.environ.get('ADMIN_SECRET', 'resume-admin-2026')
 
 if __name__ == '__main__':
+    init_db()
     init_default_key()
     config = load_ai_config()
     print(f'[启动] 后端服务运行在 http://0.0.0.0:5000')
     print(f'[启动] 管理员密钥: {ADMIN_SECRET}')
+    print(f'[启动] 数据库: {DB_FILE}')
     print(f'[启动] AI模型: {config["model"]} @ {config["apiUrl"][:50]}...')
     app.run(host='0.0.0.0', port=5000, debug=False, threaded=True)

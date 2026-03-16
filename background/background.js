@@ -1,6 +1,6 @@
 /**
  * 简历投递助手 - Background Service Worker
- * 作为插件和后端服务之间的通信代理
+ * AI 填充必须通过后端服务，后端通过密钥验证授权
  */
 
 async function getBackendConfig() {
@@ -11,11 +11,11 @@ async function getBackendConfig() {
   });
 }
 
-// ========== AI 配置与填充 ==========
+// ========== AI 配置（仅在无后端时使用的本地降级方案） ==========
 
 const DEFAULT_AI_CONFIG = {
   endpoint: 'https://api.siliconflow.cn/v1/chat/completions',
-  apiKey: 'sk-qqrfmjpunjhxtxuxqfhcxreoppndojhgzhbjqpkwqtizgiao',
+  apiKey: '',
   model: 'Qwen/Qwen2.5-VL-72B-Instruct',
 };
 
@@ -33,146 +33,62 @@ async function saveAiConfig(config) {
   });
 }
 
-function extractJsonFromText(text) {
-  if (!text || typeof text !== 'string') return null;
-  let s = text.trim();
-  const codeBlockMatch = s.match(/```(?:json)?\s*([\s\S]*?)```/);
-  if (codeBlockMatch) s = codeBlockMatch[1].trim();
-  const braceStart = s.indexOf('{');
-  const braceEnd = s.lastIndexOf('}');
-  if (braceStart >= 0 && braceEnd > braceStart) s = s.slice(braceStart, braceEnd + 1);
-  try {
-    return JSON.parse(s);
-  } catch (e) {
-    try {
-      s = s.replace(/,(\s*[}\]])/g, '$1').replace(/(['"])?([a-zA-Z_][a-zA-Z0-9_]*)(['"])?\s*:/g, '"$2": ');
-      return JSON.parse(s);
-    } catch (e2) {
-      return null;
-    }
+// ========== 通过后端调用 AI 填充 ==========
+
+async function callBackendFill(unfilledFields, resumeData) {
+  const config = await getBackendConfig();
+  if (!config.serverUrl || !config.pluginKey) {
+    throw new Error('请先在设置中配置后端服务器地址和插件密钥');
   }
-}
+  const url = config.serverUrl.replace(/\/+$/, '') + '/api/fill';
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 120000);
 
-async function callAIFill(screenshotDataUrl, unfilledFields, resumeData, pageUrl) {
-  const config = await getAiConfig();
-  if (!config.endpoint || !config.apiKey) {
-    throw new Error('请先在设置中配置 AI 接口地址和 API Key');
-  }
-
-  const fieldsDesc = unfilledFields.map((f, i) => {
-    let desc = `f_${i}(字段索引${f.index}): label="${f.label || '无'}" type="${f.type || 'text'}"`;
-    if (f.context) desc += ` context="${(f.context || '').substring(0, 60)}"`;
-    if (f.nearby) desc += ` nearby="${(f.nearby || '').substring(0, 60)}"`;
-    if (f.parentText) desc += ` parent="${(f.parentText || '').substring(0, 60)}"`;
-    if (f.options && f.options.length) {
-      const optTexts = f.options.slice(0, 20).map(o => typeof o === 'object' ? (o.text || o.value || '') : String(o));
-      desc += ` options=[${optTexts.join(',')}]`;
-    }
-    return desc;
-  }).join('\n');
-
-  const basicInfo = resumeData.basic || {};
-  const resumeCompact = JSON.stringify({
-    basic: basicInfo,
-    education: (resumeData.education || [])[0] || {},
-    work: (resumeData.work || resumeData.experience || [])[0] || {},
-    project: (resumeData.projects || [])[0] || {},
-    awards: resumeData.awards || [],
-    languages: resumeData.languages || basicInfo.languages || null,
-    summary: basicInfo.summary || resumeData.summary || '',
-  }, null, 0);
-
-  const systemPrompt = '你是简历表单自动填写工具。根据提供的截图和表单字段信息，结合简历数据，为每个未填写的字段提供合适的值。\n' +
-    '要求：\n' +
-    '1. select/dropdown类型的字段必须使用选项中存在的文本值\n' +
-    '2. 年份填数字如2023，月份填1-12的数字\n' +
-    '3. 无法确定的字段不要填写（不要在fills中出现）\n' +
-    '4. 只输出JSON，格式：{"fills":[{"fieldId":"f_0","value":"填充值"},...]}\n' +
-    '5. fieldId对应字段描述中的f_X标识\n' +
-    '6. 不要输出<think>标签或思考过程';
-
-  const userContent = [
-    { type: 'text', text: `页面URL: ${pageUrl}\n\n简历数据:\n${resumeCompact}\n\n未填写的表单字段:\n${fieldsDesc}\n\n请根据截图中表单的实际情况和简历数据，为上述字段提供填充值。` },
-  ];
-
-  if (screenshotDataUrl) {
-    userContent.push({ type: 'image_url', image_url: { url: screenshotDataUrl, detail: 'low' } });
-  }
-
-  const requestBody = JSON.stringify({
-    model: config.model,
-    messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userContent },
-    ],
-    temperature: 0.3,
-    max_tokens: 4096,
+  const backendFields = unfilledFields.map(f => {
+    const { index, ...rest } = f;
+    return rest;
   });
 
-  const maxRetries = 2;
-  const timeoutMs = 60000;
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${config.pluginKey}`,
+      },
+      body: JSON.stringify({ fields: backendFields, resumeData }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
 
-  for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-
-    try {
-      const response = await fetch(config.endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${config.apiKey}`,
-        },
-        body: requestBody,
-        signal: controller.signal,
-      });
-      clearTimeout(timeoutId);
-
-      if (response.status === 429 && attempt < maxRetries) {
-        console.warn(`[简历助手] AI接口429并发限制，${3 + attempt * 2}秒后重试...`);
-        await new Promise(r => setTimeout(r, (3 + attempt * 2) * 1000));
-        continue;
-      }
-
-      if (!response.ok) {
-        const errText = await response.text().catch(() => '');
-        throw new Error(`AI接口错误 (${response.status}): ${errText.slice(0, 200)}`);
-      }
-
-      const data = await response.json();
-      const rawContent = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
-      console.log('[简历助手] AI原始响应:', rawContent.substring(0, 500));
-
-      const parsed = extractJsonFromText(rawContent);
-      if (!parsed || !parsed.fills || !Array.isArray(parsed.fills)) {
-        throw new Error('AI返回格式无效: ' + rawContent.substring(0, 200));
-      }
-
-      const fills = {};
-      for (const item of parsed.fills) {
-        const fieldId = item.fieldId;
-        const value = item.value;
-        if (fieldId == null || value == null || value === '') continue;
-        const localMatch = String(fieldId).match(/f_(\d+)/);
-        if (!localMatch) continue;
-        const localIdx = parseInt(localMatch[1]);
-        if (localIdx >= 0 && localIdx < unfilledFields.length) {
-          const globalIdx = unfilledFields[localIdx].index;
-          fills[String(globalIdx)] = String(value);
-        }
-      }
-      return { fills };
-    } catch (err) {
-      clearTimeout(timeoutId);
-      if (err.name === 'AbortError') {
-        if (attempt < maxRetries) {
-          console.warn(`[简历助手] AI请求超时，重试中(${attempt + 1}/${maxRetries})...`);
-          continue;
-        }
-        throw new Error('AI请求超时（60秒），已重试' + maxRetries + '次');
-      }
-      throw err;
+    if (response.status === 403) {
+      throw new Error('密钥验证失败，请检查插件密钥是否正确');
     }
+    if (!response.ok) {
+      const errText = await response.text().catch(() => '');
+      throw new Error(`后端服务错误 (${response.status}): ${errText.slice(0, 200)}`);
+    }
+
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.message || '后端返回失败');
+    }
+
+    const fills = {};
+    for (const [idx, value] of Object.entries(data.fills || {})) {
+      const i = parseInt(idx);
+      if (i >= 0 && i < unfilledFields.length && unfilledFields[i].index != null) {
+        fills[String(unfilledFields[i].index)] = value;
+      }
+    }
+
+    return { fills, logs: data.logs || [] };
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (err.name === 'AbortError') {
+      throw new Error('后端请求超时（120秒）');
+    }
+    throw err;
   }
 }
 
@@ -240,15 +156,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.action === 'AI_FILL') {
-    callAIFill(
-      message.screenshotDataUrl,
+    callBackendFill(
       message.unfilledFields || [],
-      message.resumeData || {},
-      message.pageUrl || ''
+      message.resumeData || {}
     )
-      .then(result => sendResponse({ success: true, fills: result.fills }))
+      .then(result => sendResponse({ success: true, fills: result.fills, logs: result.logs }))
       .catch(error => {
-        console.error('[简历助手] AI 填充失败:', error);
+        console.error('[简历助手] 后端 AI 填充失败:', error);
         sendResponse({ success: false, error: error.message });
       });
     return true;

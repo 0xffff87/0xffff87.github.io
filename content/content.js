@@ -2115,15 +2115,10 @@
         if (['policy', 'agree', 'privacy', 'terms'].includes(uName)) continue;
         const uel = getFieldElement(uf);
         if (!uel) continue;
-        unfilledFields.push({
-          index: ui,
+        unfilledFields.push(Object.assign({ index: ui }, fieldsMeta[ui] || {
           label: uf.label || '',
           type: uf.customType || uf.type || '',
-          context: fieldsMeta[ui] ? (fieldsMeta[ui].context || '') : '',
-          nearby: fieldsMeta[ui] ? (fieldsMeta[ui].nearby || '') : '',
-          parentText: fieldsMeta[ui] ? (fieldsMeta[ui].parentText || '') : '',
-          options: fieldsMeta[ui] ? (fieldsMeta[ui].options || null) : null,
-        });
+        }));
       }
 
       let aiFilledCount = 0;
@@ -2132,23 +2127,7 @@
         log('info', `AI补充: 发现 ${unfilledFields.length} 个未填写字段`);
 
         try {
-          const screenshot = await new Promise((resolve) => {
-            chrome.runtime.sendMessage({ action: 'CAPTURE_TAB' }, (r) => {
-              if (chrome.runtime.lastError) {
-                log('warn', 'AI截图错误: ' + chrome.runtime.lastError.message);
-                resolve(null);
-                return;
-              }
-              if (!r || !r.success) {
-                log('warn', 'AI截图失败: ' + (r ? r.error : '无响应'));
-                resolve(null);
-                return;
-              }
-              resolve(r.dataUrl);
-            });
-          });
-
-          log('info', `AI补充: 截图${screenshot ? '成功' : '失败（无截图模式）'}，正在调用AI...`);
+          log('info', `AI补充: 通过后端发送 ${unfilledFields.length} 个字段...`);
 
           const keepAlive = setInterval(() => {
             chrome.runtime.sendMessage({ action: 'KEEPALIVE' }, () => {
@@ -2159,10 +2138,8 @@
           const aiResult = await new Promise((resolve) => {
             chrome.runtime.sendMessage({
               action: 'AI_FILL',
-              screenshotDataUrl: screenshot || '',
               unfilledFields: unfilledFields,
               resumeData: resumeData,
-              pageUrl: window.location.href,
             }, (r) => {
               clearInterval(keepAlive);
               if (chrome.runtime.lastError) { resolve({ success: false, error: chrome.runtime.lastError.message }); return; }
