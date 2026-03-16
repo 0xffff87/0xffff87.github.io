@@ -50,17 +50,18 @@
     let isDragging = false;
     let dragStartX, dragStartY, fabStartX, fabStartY;
 
-    fab.addEventListener('mousedown', (e) => {
+    fab.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0) return;
       isDragging = false;
       dragStartX = e.clientX;
       dragStartY = e.clientY;
       const rect = fab.getBoundingClientRect();
       fabStartX = rect.left;
       fabStartY = rect.top;
-      e.preventDefault();
+      fab.setPointerCapture(e.pointerId);
     });
 
-    document.addEventListener('mousemove', (e) => {
+    fab.addEventListener('pointermove', (e) => {
       if (dragStartX == null) return;
       const dx = e.clientX - dragStartX;
       const dy = e.clientY - dragStartY;
@@ -77,17 +78,12 @@
       }
     });
 
-    document.addEventListener('mouseup', () => {
-      if (!isDragging && dragStartX != null) {
+    fab.addEventListener('pointerup', (e) => {
+      if (dragStartX != null && !isDragging) {
         togglePanel();
       }
       dragStartX = null;
       isDragging = false;
-    });
-
-    // 兼容程序化 .click() 调用（如测试脚本）
-    fab.addEventListener('click', (e) => {
-      if (!isDragging && dragStartX == null) togglePanel();
     });
 
     document.body.appendChild(fab);

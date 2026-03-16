@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "简历投递助手",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "AI驱动的简历投递助手，智能识别招聘网站表单并自动填写个人信息",
   "permissions": [
     "storage",
