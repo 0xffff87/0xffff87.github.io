@@ -120,7 +120,11 @@
     });
 
     document.getElementById('rh-btn-settings').addEventListener('click', () => {
-      chrome.runtime.sendMessage({ action: 'openOptions' });
+      chrome.runtime.sendMessage({ action: 'openOptions' }, (resp) => {
+        if (chrome.runtime.lastError) {
+          log('warn', '打开设置失败: ' + chrome.runtime.lastError.message);
+        }
+      });
     });
 
     document.getElementById('rh-btn-debug').addEventListener('click', () => {
