@@ -534,7 +534,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-online').addEventListener('click', () => {
     // 用户部署后，将此 URL 替换为实际的网页地址
     // 例如：https://yourusername.github.io/resume-helper/website/
-    const onlineUrl = 'https://0xffff87.github.io/-/website/';
+    const onlineUrl = 'https://0xffff87.github.io/website/';
     chrome.tabs.create({ url: onlineUrl });
   });
 
