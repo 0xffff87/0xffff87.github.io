@@ -38,7 +38,7 @@
           </svg>
           后端服务
         </h2>
-        <p class="card-desc">配置后端服务器地址和插件授权密钥，用于日志收集和插件授权验证。</p>
+        <p class="card-desc">配置后端服务器地址和插件授权密钥。AI 智能填充功能由后端统一管理，需要有效密钥才能使用。</p>
 
         <div class="form-group">
           <label for="serverUrl">服务器地址</label>
@@ -71,99 +71,16 @@
         </div>
       </div>
 
-      <div class="card">
-        <h2 class="card-title">
+      <div class="card" style="background: #f8f9fe; border: 1px dashed #d0d0e0;">
+        <h2 class="card-title" style="color: #888;">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M12 2a4 4 0 014 4v1a1 1 0 001 1h1a4 4 0 010 8h-1a1 1 0 00-1 1v1a4 4 0 01-8 0v-1a1 1 0 00-1-1H6a4 4 0 010-8h1a1 1 0 001-1V6a4 4 0 014-4z"/>
             <circle cx="12" cy="12" r="3"/>
           </svg>
-          AI 服务配置
+          AI 智能填充
         </h2>
-        <p class="card-desc">配置 AI 接口地址和 API Key，用于智能匹配规则未覆盖的表单字段。</p>
-
-        <div class="form-group">
-          <label>AI 服务商</label>
-          <div class="provider-grid">
-            <label class="provider-option">
-              <input type="radio" name="aiProvider" value="siliconflow">
-              <div class="provider-card">
-                <div class="provider-name">SiliconFlow</div>
-                <div class="provider-desc">硅基流动</div>
-              </div>
-            </label>
-            <label class="provider-option">
-              <input type="radio" name="aiProvider" value="deepseek">
-              <div class="provider-card">
-                <div class="provider-name">DeepSeek</div>
-                <div class="provider-desc">深度求索</div>
-              </div>
-            </label>
-            <label class="provider-option">
-              <input type="radio" name="aiProvider" value="zhipu">
-              <div class="provider-card">
-                <div class="provider-name">智谱 AI</div>
-                <div class="provider-desc">GLM 系列</div>
-              </div>
-            </label>
-            <label class="provider-option">
-              <input type="radio" name="aiProvider" value="moonshot">
-              <div class="provider-card">
-                <div class="provider-name">Moonshot</div>
-                <div class="provider-desc">Kimi</div>
-              </div>
-            </label>
-            <label class="provider-option">
-              <input type="radio" name="aiProvider" value="openai">
-              <div class="provider-card">
-                <div class="provider-name">OpenAI</div>
-                <div class="provider-desc">GPT 系列</div>
-              </div>
-            </label>
-            <label class="provider-option">
-              <input type="radio" name="aiProvider" value="custom">
-              <div class="provider-card">
-                <div class="provider-name">自定义</div>
-                <div class="provider-desc">其他接口</div>
-              </div>
-            </label>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="aiEndpoint">API 地址</label>
-          <input type="url" id="aiEndpoint" placeholder="https://api.siliconflow.cn/v1/chat/completions">
-          <span class="form-hint">AI 服务的 Chat Completions 接口地址</span>
-        </div>
-
-        <div class="form-group">
-          <label for="aiApiKey">API Key</label>
-          <div class="input-with-action">
-            <input type="password" id="aiApiKey" placeholder="sk-xxxxxxxxxxxxxxxx">
-            <button class="btn-toggle-pwd" id="btn-toggle-ai-key" title="显示/隐藏">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                <circle cx="12" cy="12" r="3"/>
-              </svg>
-            </button>
-          </div>
-          <span class="form-hint">在对应服务商官网注册获取的 API Key</span>
-        </div>
-
-        <div class="form-group">
-          <label for="aiModel">模型名称</label>
-          <input type="text" id="aiModel" placeholder="Qwen/Qwen2.5-VL-72B-Instruct">
-          <span class="form-hint">推荐使用多模态（支持图片识别）模型以获得更好效果</span>
-        </div>
-
-        <div class="test-area">
-          <button class="btn btn-test" id="btn-test-ai">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polygon points="5 3 19 12 5 21 5 3"/>
-            </svg>
-            测试 AI
-          </button>
-          <div class="test-result" id="ai-result"></div>
-        </div>
+        <p class="card-desc">AI 智能填充功能由后端服务统一管理，无需在此配置。填写上方的服务器地址和有效密钥后，即可使用 AI 自动填充规则未覆盖的表单字段。</p>
+        <p class="card-desc" style="margin-top: 8px; color: #999; font-size: 12px;">如需获取插件密钥，请联系后端管理员。</p>
       </div>
 
       <div class="actions">
