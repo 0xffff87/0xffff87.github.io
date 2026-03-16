@@ -1,0 +1,49 @@
+{
+  "manifest_version": 3,
+  "name": "简历投递助手",
+  "version": "1.1.0",
+  "description": "AI驱动的简历投递助手，智能识别招聘网站表单并自动填写个人信息",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "clipboardWrite",
+    "clipboardRead"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "background": {
+    "service_worker": "background/background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content/content.js"],
+      "css": ["content/content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "options_page": "options/options.html",
+  "commands": {
+    "fill-resume": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+F"
+      },
+      "description": "开始智能填写当前页面表单"
+    }
+  }
+}

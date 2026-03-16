@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>简历投递助手 - 模拟招聘表单测试</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; background: #f5f5f5; padding: 20px; }
+    .container { max-width: 800px; margin: 0 auto; }
+    h1 { text-align: center; color: #333; margin-bottom: 20px; }
+    .section { background: #fff; border-radius: 8px; padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .section-title { font-size: 18px; font-weight: bold; color: #1a73e8; border-bottom: 2px solid #1a73e8; padding-bottom: 8px; margin-bottom: 16px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-weight: 600; margin-bottom: 6px; color: #333; }
+    .form-group .required::after { content: ' *'; color: red; }
+    .form-row { display: flex; gap: 16px; }
+    .form-row .form-group { flex: 1; }
+    input[type="text"], input[type="email"], input[type="tel"], input[type="date"], input[type="number"],
+    select, textarea {
+      width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;
+    }
+    textarea { min-height: 80px; resize: vertical; }
+
+    /* 自定义下拉框模拟 */
+    .custom-select { position: relative; cursor: pointer; }
+    .custom-select .select-display {
+      padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px;
+      background: #fff; display: flex; justify-content: space-between; align-items: center;
+    }
+    .custom-select .select-display::after { content: '▼'; font-size: 10px; color: #999; }
+    .custom-select .select-options {
+      display: none; position: absolute; top: 100%; left: 0; right: 0;
+      background: #fff; border: 1px solid #ddd; border-radius: 6px;
+      max-height: 200px; overflow-y: auto; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .custom-select.open .select-options { display: block; }
+    .custom-select .select-option {
+      padding: 10px 12px; cursor: pointer; transition: background 0.1s;
+    }
+    .custom-select .select-option:hover { background: #e8f0fe; }
+    .custom-select .select-option.selected { background: #1a73e8; color: #fff; }
+
+    /* 日期选择器模拟 */
+    .date-picker-group { display: flex; gap: 8px; }
+    .date-picker-group .custom-select { flex: 1; }
+
+    /* Radio/Checkbox 组 */
+    .radio-group, .checkbox-group { display: flex; gap: 16px; flex-wrap: wrap; }
+    .radio-group label, .checkbox-group label { font-weight: normal; display: flex; align-items: center; gap: 4px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>模拟招聘网站 - 在线简历填写</h1>
+
+    <!-- 基本信息 -->
+    <div class="section">
+      <h2 class="section-title">基本信息</h2>
+      <div class="form-group">
+        <label class="required">姓名</label>
+        <input type="text" id="fullName" name="fullName" placeholder="请输入您的姓名">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>性别</label>
+          <div class="radio-group">
+            <label><input type="radio" name="gender" value="male"> 男</label>
+            <label><input type="radio" name="gender" value="female"> 女</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>民族</label>
+          <select id="ethnicity" name="ethnicity">
+            <option value="">请选择</option>
+            <option value="汉族">汉族</option>
+            <option value="满族">满族</option>
+            <option value="蒙古族">蒙古族</option>
+            <option value="回族">回族</option>
+            <option value="其他">其他</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>出生日期</label>
+        <div class="date-picker-group">
+          <div class="custom-select" data-field="birth-year">
+            <div class="select-display" data-placeholder="年">年</div>
+            <div class="select-options" id="birth-year-options"></div>
+          </div>
+          <div class="custom-select" data-field="birth-month">
+            <div class="select-display" data-placeholder="月">月</div>
+            <div class="select-options" id="birth-month-options"></div>
+          </div>
+          <div class="custom-select" data-field="birth-day">
+            <div class="select-display" data-placeholder="日">日</div>
+            <div class="select-options" id="birth-day-options"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="required">手机号码</label>
+        <input type="tel" id="phone" name="phone" placeholder="请输入手机号码">
+      </div>
+      <div class="form-group">
+        <label class="required">电子邮箱</label>
+        <input type="email" id="email" name="email" placeholder="请输入邮箱地址">
+      </div>
+      <div class="form-group">
+        <label>身份证号</label>
+        <input type="text" id="idNumber" name="idNumber" placeholder="请输入身份证号码">
+      </div>
+      <div class="form-group">
+        <label>政治面貌</label>
+        <div class="custom-select" data-field="political-status">
+          <div class="select-display" data-placeholder="请选择">请选择政治面貌</div>
+          <div class="select-options">
+            <div class="select-option" data-value="party_member">中共党员</div>
+            <div class="select-option" data-value="reserve_member">中共预备党员</div>
+            <div class="select-option" data-value="league_member">共青团员</div>
+            <div class="select-option" data-value="masses">群众</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>当前所在国家</label>
+          <input type="text" id="currentCountry" name="currentCountry" placeholder="如：中国">
+        </div>
+        <div class="form-group">
+          <label>当前所在城市</label>
+          <input type="text" id="currentCity" name="currentCity" placeholder="如：北京">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>详细住址</label>
+        <input type="text" id="address" name="address" placeholder="请输入详细住址">
+      </div>
+    </div>
+
+    <!-- 求职意向 -->
+    <div class="section">
+      <h2 class="section-title">求职意向</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label>意向国家</label>
+          <select id="targetCountry" name="targetCountry">
+            <option value="">请选择</option>
+            <option value="中国">中国</option>
+            <option value="美国">美国</option>
+            <option value="日本">日本</option>
+            <option value="其他">其他</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>意向城市</label>
+          <input type="text" id="targetCity" name="targetCity" placeholder="如：北京、上海">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>期望岗位</label>
+        <input type="text" id="targetJob" name="targetJob" placeholder="如：后端开发工程师">
+      </div>
+      <div class="form-group">
+        <label>期望薪资</label>
+        <select id="expectedSalary" name="expectedSalary">
+          <option value="">请选择</option>
+          <option value="5k-10k">5K-10K</option>
+          <option value="10k-15k">10K-15K</option>
+          <option value="15k-20k">15K-20K</option>
+          <option value="20k-30k">20K-30K</option>
+          <option value="30k-50k">30K-50K</option>
+          <option value="50k+">50K以上</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 教育经历 -->
+    <div class="section">
+      <h2 class="section-title">教育经历</h2>
+      <div class="form-group">
+        <label class="required">学校名称</label>
+        <input type="text" id="school" name="school" placeholder="请输入学校名称">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="required">最高学历</label>
+          <div class="custom-select" data-field="degree">
+            <div class="select-display" data-placeholder="请选择学历">请选择学历</div>
+            <div class="select-options">
+              <div class="select-option" data-value="phd">博士</div>
+              <div class="select-option" data-value="master">硕士</div>
+              <div class="select-option" data-value="bachelor">本科</div>
+              <div class="select-option" data-value="college">大专</div>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="required">专业</label>
+          <input type="text" id="major" name="major" placeholder="请输入专业名称">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>入学年份</label>
+          <div class="custom-select" data-field="edu-start-year">
+            <div class="select-display" data-placeholder="年">入学年份</div>
+            <div class="select-options" id="edu-start-year-options"></div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>毕业年份</label>
+          <div class="custom-select" data-field="edu-end-year">
+            <div class="select-display" data-placeholder="年">毕业年份</div>
+            <div class="select-options" id="edu-end-year-options"></div>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>GPA</label>
+        <input type="text" id="gpa" name="gpa" placeholder="如：3.8/4.0">
+      </div>
+      <div class="form-group">
+        <label>主要课程成绩</label>
+        <textarea id="courseGrades" name="courseGrades" placeholder="请列出主要课程及成绩"></textarea>
+      </div>
+    </div>
+
+    <!-- 工作/实习经历 -->
+    <div class="section">
+      <h2 class="section-title">工作/实习经历</h2>
+      <div class="form-group">
+        <label>公司名称</label>
+        <input type="text" id="companyName" name="companyName" placeholder="请输入公司名称">
+      </div>
+      <div class="form-group">
+        <label>职位名称</label>
+        <input type="text" id="jobTitle" name="jobTitle" placeholder="请输入职位名称">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>开始时间</label>
+          <input type="date" id="workStart" name="workStart">
+        </div>
+        <div class="form-group">
+          <label>结束时间</label>
+          <input type="date" id="workEnd" name="workEnd">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>工作描述</label>
+        <textarea id="workDesc" name="workDesc" placeholder="请描述主要工作内容和成就"></textarea>
+      </div>
+    </div>
+
+    <!-- 项目经历 -->
+    <div class="section">
+      <h2 class="section-title">项目经历</h2>
+      <div class="form-group">
+        <label>项目名称</label>
+        <input type="text" id="projectName" name="projectName" placeholder="请输入项目名称">
+      </div>
+      <div class="form-group">
+        <label>担任角色</label>
+        <input type="text" id="projectRole" name="projectRole" placeholder="如：项目负责人">
+      </div>
+      <div class="form-group">
+        <label>项目描述</label>
+        <textarea id="projectDesc" name="projectDesc" placeholder="请描述项目背景和你的贡献"></textarea>
+      </div>
+    </div>
+
+    <!-- 获奖经历 -->
+    <div class="section">
+      <h2 class="section-title">获奖经历</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label>奖项名称</label>
+          <input type="text" id="awardName" name="awardName" placeholder="请输入奖项名称">
+        </div>
+        <div class="form-group">
+          <label>获奖时间</label>
+          <input type="month" id="awardDate" name="awardDate">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>级别</label>
+        <select id="awardLevel" name="awardLevel">
+          <option value="">请选择</option>
+          <option value="national">国家级</option>
+          <option value="provincial">省级</option>
+          <option value="city">市级</option>
+          <option value="school">校级</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 技能与其他 -->
+    <div class="section">
+      <h2 class="section-title">技能与其他</h2>
+      <div class="form-group">
+        <label>专业技能</label>
+        <textarea id="skills" name="skills" placeholder="请列出您的专业技能"></textarea>
+      </div>
+      <div class="form-group">
+        <label>语言能力</label>
+        <textarea id="languages" name="languages" placeholder="如：英语CET-6 560分"></textarea>
+      </div>
+      <div class="form-group">
+        <label>证书</label>
+        <textarea id="certificates" name="certificates" placeholder="请列出您获得的证书"></textarea>
+      </div>
+      <div class="form-group">
+        <label>自我评价</label>
+        <textarea id="selfIntro" name="selfIntro" rows="5" placeholder="请简要介绍自己"></textarea>
+      </div>
+      <div class="form-group">
+        <label>
+          <input type="checkbox" id="agreement" name="agreement">
+          我已阅读并同意《隐私协议》
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 生成年份选项
+    function generateYearOptions(containerId) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      for (let y = 2030; y >= 1970; y--) {
+        const opt = document.createElement('div');
+        opt.className = 'select-option';
+        opt.dataset.value = y;
+        opt.textContent = y;
+        container.appendChild(opt);
+      }
+    }
+
+    // 生成月份选项
+    function generateMonthOptions(containerId) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      for (let m = 1; m <= 12; m++) {
+        const opt = document.createElement('div');
+        opt.className = 'select-option';
+        opt.dataset.value = m.toString().padStart(2, '0');
+        opt.textContent = m.toString().padStart(2, '0');
+        container.appendChild(opt);
+      }
+    }
+
+    // 生成日期选项
+    function generateDayOptions(containerId) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      for (let d = 1; d <= 31; d++) {
+        const opt = document.createElement('div');
+        opt.className = 'select-option';
+        opt.dataset.value = d.toString().padStart(2, '0');
+        opt.textContent = d.toString().padStart(2, '0');
+        container.appendChild(opt);
+      }
+    }
+
+    generateYearOptions('birth-year-options');
+    generateMonthOptions('birth-month-options');
+    generateDayOptions('birth-day-options');
+    generateYearOptions('edu-start-year-options');
+    generateYearOptions('edu-end-year-options');
+
+    // 自定义下拉框点击事件
+    document.querySelectorAll('.custom-select').forEach(sel => {
+      const display = sel.querySelector('.select-display');
+      display.addEventListener('click', () => {
+        document.querySelectorAll('.custom-select.open').forEach(s => {
+          if (s !== sel) s.classList.remove('open');
+        });
+        sel.classList.toggle('open');
+      });
+
+      sel.querySelectorAll('.select-option').forEach(opt => {
+        opt.addEventListener('click', () => {
+          display.textContent = opt.textContent;
+          display.dataset.selectedValue = opt.dataset.value;
+          sel.querySelectorAll('.select-option').forEach(o => o.classList.remove('selected'));
+          opt.classList.add('selected');
+          sel.classList.remove('open');
+        });
+      });
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.custom-select')) {
+        document.querySelectorAll('.custom-select.open').forEach(s => s.classList.remove('open'));
+      }
+    });
+  </script>
+</body>
+</html>

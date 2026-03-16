@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>简历投递助手 - 在线简历编辑器</title>
+  <meta name="description" content="AI驱动的简历投递助手，一键智能填写招聘网站表单。在线编辑你的简历数据，搭配Chrome浏览器插件使用。">
+  <meta name="keywords" content="简历投递,自动填写,Chrome插件,招聘,求职,简历助手">
+  <link rel="icon" href="../icons/icon48.png" type="image/png">
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Google AdSense -->
+  <!-- 请将 ca-pub-XXXXXXXXXXXXXXXX 替换为你自己的 AdSense 发布商 ID -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+</head>
+<body>
+
+  <!-- 顶部导航栏 -->
+  <header class="navbar">
+    <div class="container navbar-inner">
+      <a href="#" class="navbar-brand">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="12" fill="rgba(255,255,255,0.2)"/>
+          <rect x="7" y="5" width="10" height="14" rx="1.5" fill="white"/>
+          <line x1="9.5" y1="11" x2="14.5" y2="11" stroke="#4f46e5" stroke-width="1.2"/>
+          <line x1="9.5" y1="13.5" x2="14.5" y2="13.5" stroke="#4f46e5" stroke-width="1.2"/>
+          <circle cx="12" cy="8.5" r="1.5" fill="#4f46e5"/>
+        </svg>
+        <span>简历投递助手</span>
+      </a>
+      <nav class="navbar-links">
+        <a href="#features">功能特性</a>
+        <a href="#editor">在线编辑</a>
+        <a href="#faq">常见问题</a>
+        <a href="#" class="btn-chrome" id="btn-install">安装插件</a>
+      </nav>
+      <button class="navbar-toggle" id="navbar-toggle" aria-label="菜单">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Hero 区域 -->
+  <section class="hero">
+    <div class="container">
+      <h1>AI 驱动的<br><span class="highlight">简历投递助手</span></h1>
+      <p class="hero-desc">一键智能填写招聘网站表单，支持百度、腾讯、字节跳动等主流平台。<br>在下方编辑你的简历数据，搭配 Chrome 浏览器插件一键投递。</p>
+      <div class="hero-actions">
+        <a href="#editor" class="btn btn-primary btn-lg">开始编辑简历</a>
+        <a href="#" class="btn btn-outline btn-lg" id="btn-install-hero">安装 Chrome 插件</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 功能特性 -->
+  <section class="features" id="features">
+    <div class="container">
+      <h2 class="section-heading">为什么选择简历投递助手？</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🤖</div>
+          <h3>AI 智能识别</h3>
+          <p>多模态 AI 自动识别表单字段，对未覆盖的字段进行智能匹配填写。</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <h3>一键填写</h3>
+          <p>按下快捷键或点击按钮，几秒内自动完成整个招聘表单的填写。</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🏢</div>
+          <h3>多平台支持</h3>
+          <p>兼容百度招聘、腾讯招聘、字节跳动等主流招聘网站的表单。</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔒</div>
+          <h3>隐私安全</h3>
+          <p>数据仅存储在你的浏览器本地，不上传服务器，完全保护个人隐私。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 顶部横幅广告 -->
+  <div class="ad-banner container">
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+         data-ad-slot="YOUR_AD_SLOT_1"
+         data-ad-format="horizontal"
+         data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </div>
+
+  <!-- 在线简历编辑器 -->
+  <section class="editor-section" id="editor">
+    <div class="container editor-layout">
+
+      <!-- 主内容区 -->
+      <div class="editor-main">
+        <div class="editor-header">
+          <h2>📝 在线简历编辑器</h2>
+          <p>填写下方信息后导出 JSON 文件，在插件中导入即可使用。</p>
+        </div>
+
+        <!-- 操作栏 -->
+        <div class="editor-toolbar">
+          <button class="btn btn-sm btn-outline" id="btn-load-demo">加载示例</button>
+          <button class="btn btn-sm btn-outline" id="btn-import">导入 JSON</button>
+          <input type="file" id="import-file" accept=".json" style="display:none">
+          <div class="toolbar-spacer"></div>
+          <button class="btn btn-sm btn-primary" id="btn-export">导出 JSON</button>
+          <button class="btn btn-sm btn-danger" id="btn-clear">清空</button>
+        </div>
+
+        <!-- 基本信息 -->
+        <div class="form-section" id="sec-basic">
+          <h3 class="form-section-title" data-toggle="sec-basic-body">
+            <span>👤 基本信息</span>
+            <svg class="chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </h3>
+          <div class="form-section-body" id="sec-basic-body">
+            <div class="form-grid-2">
+              <div class="fg"><label>姓名 <span class="req">*</span></label><input type="text" id="f-name" placeholder="请输入姓名"></div>
+              <div class="fg"><label>性别</label>
+                <select id="f-gender"><option value="">请选择</option><option value="男">男</option><option value="女">女</option></select>
+              </div>
+            </div>
+            <div class="form-grid-2">
+              <div class="fg"><label>出生日期</label><input type="date" id="f-birthday"></div>
+              <div class="fg"><label>民族</label><input type="text" id="f-ethnicity" placeholder="如：汉族"></div>
+            </div>
+            <div class="form-grid-2">
+              <div class="fg"><label>手机号码 <span class="req">*</span></label><input type="tel" id="f-phone" placeholder="请输入手机号码"></div>
+              <div class="fg"><label>电子邮箱</label><input type="email" id="f-email" placeholder="请输入邮箱地址"></div>
+            </div>
+            <div class="form-grid-2">
+              <div class="fg"><label>政治面貌</label>
+                <select id="f-political"><option value="">请选择</option><option value="中共党员">中共党员</option><option value="中共预备党员">中共预备党员</option><option value="共青团员">共青团员</option><option value="群众">群众</option><option value="民主党派">民主党派</option></select>
+              </div>
+              <div class="fg"><label>身份证号</label><input type="text" id="f-idcard" placeholder="请输入身份证号码"></div>
+            </div>
+            <div class="fg"><label>籍贯</label><input type="text" id="f-hometown" placeholder="如：山东省济南市"></div>
+
+            <h4 class="form-subtitle">居住信息</h4>
+            <div class="form-grid-2">
+              <div class="fg"><label>当前居住国家</label><input type="text" id="f-currentCountry" placeholder="如：中国"></div>
+              <div class="fg"><label>当前居住城市</label><input type="text" id="f-currentCity" placeholder="如：济南"></div>
+            </div>
+            <div class="fg"><label>详细地址</label><input type="text" id="f-address" placeholder="请输入详细地址"></div>
+
+            <h4 class="form-subtitle">求职意向</h4>
+            <div class="form-grid-2">
+              <div class="fg"><label>意向工作国家</label><input type="text" id="f-targetCountry" placeholder="如：中国"></div>
+              <div class="fg"><label>意向工作城市</label><input type="text" id="f-targetCity" placeholder="如：北京、上海"></div>
+            </div>
+            <div class="form-grid-2">
+              <div class="fg"><label>意向岗位</label><input type="text" id="f-targetPosition" placeholder="如：后端开发工程师"></div>
+              <div class="fg"><label>期望薪资</label><input type="text" id="f-expectedSalary" placeholder="如：15k-25k"></div>
+            </div>
+            <div class="fg"><label>个人简介</label><textarea id="f-summary" rows="3" placeholder="简要描述自己的特点和求职意向"></textarea></div>
+          </div>
+        </div>
+
+        <!-- 文章间广告 -->
+        <div class="ad-inline">
+          <ins class="adsbygoogle"
+               style="display:block; text-align:center"
+               data-ad-layout="in-article"
+               data-ad-format="fluid"
+               data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+               data-ad-slot="YOUR_AD_SLOT_2"></ins>
+          <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+
+        <!-- 教育经历 -->
+        <div class="form-section" id="sec-edu">
+          <h3 class="form-section-title" data-toggle="sec-edu-body">
+            <span>🎓 教育经历</span>
+            <svg class="chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </h3>
+          <div class="form-section-body" id="sec-edu-body">
+            <div id="edu-list"></div>
+            <button class="btn-add" id="btn-add-edu">＋ 添加教育经历</button>
+          </div>
+        </div>
+
+        <!-- 工作/实习经历 -->
+        <div class="form-section" id="sec-exp">
+          <h3 class="form-section-title" data-toggle="sec-exp-body">
+            <span>💼 工作 / 实习经历</span>
+            <svg class="chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </h3>
+          <div class="form-section-body" id="sec-exp-body">
+            <div id="exp-list"></div>
+            <button class="btn-add" id="btn-add-exp">＋ 添加工作 / 实习经历</button>
+          </div>
+        </div>
+
+        <!-- 文章间广告 -->
+        <div class="ad-inline">
+          <ins class="adsbygoogle"
+               style="display:block; text-align:center"
+               data-ad-layout="in-article"
+               data-ad-format="fluid"
+               data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+               data-ad-slot="YOUR_AD_SLOT_3"></ins>
+          <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+
+        <!-- 项目经历 -->
+        <div class="form-section" id="sec-proj">
+          <h3 class="form-section-title" data-toggle="sec-proj-body">
+            <span>🚀 项目经历</span>
+            <svg class="chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </h3>
+          <div class="form-section-body" id="sec-proj-body">
+            <div id="proj-list"></div>
+            <button class="btn-add" id="btn-add-proj">＋ 添加项目经历</button>
+          </div>
+        </div>
+
+        <!-- 获奖 & 技能 -->
+        <div class="form-section" id="sec-extras">
+          <h3 class="form-section-title" data-toggle="sec-extras-body">
+            <span>🏆 获奖 / 技能 / 其他</span>
+            <svg class="chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </h3>
+          <div class="form-section-body" id="sec-extras-body">
+            <h4 class="form-subtitle">获奖经历</h4>
+            <div id="award-list"></div>
+            <button class="btn-add" id="btn-add-award">＋ 添加获奖经历</button>
+
+            <h4 class="form-subtitle" style="margin-top:24px">专业技能</h4>
+            <div class="fg"><textarea id="f-skills" rows="3" placeholder="请输入专业技能，如：熟练使用 Python、Java…"></textarea></div>
+
+            <h4 class="form-subtitle">主要课程成绩</h4>
+            <div class="fg"><textarea id="f-courses" rows="2" placeholder="如：数据结构 95分、算法设计 90分…"></textarea></div>
+
+            <h4 class="form-subtitle">证书</h4>
+            <div class="fg"><textarea id="f-certificates" rows="2" placeholder="如：CET-6 550分、普通话二级甲等…"></textarea></div>
+
+            <h4 class="form-subtitle">语言能力</h4>
+            <div class="fg"><textarea id="f-languages" rows="2" placeholder="如：普通话（母语）、英语（CET-6）"></textarea></div>
+
+            <h4 class="form-subtitle">兴趣爱好</h4>
+            <div class="fg"><textarea id="f-hobbies" rows="2" placeholder="请输入兴趣爱好"></textarea></div>
+          </div>
+        </div>
+
+        <!-- 底部操作 -->
+        <div class="editor-footer">
+          <button class="btn btn-lg btn-primary" id="btn-export-bottom">📥 导出简历数据 (JSON)</button>
+          <p class="editor-footer-hint">导出后在插件弹窗中点击「导入」即可同步使用</p>
+        </div>
+      </div>
+
+      <!-- 侧边栏（桌面端显示） -->
+      <aside class="editor-sidebar">
+        <div class="sidebar-sticky">
+          <!-- 侧栏广告 -->
+          <div class="ad-sidebar">
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+                 data-ad-slot="YOUR_AD_SLOT_4"
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+          </div>
+
+          <!-- 使用指南 -->
+          <div class="sidebar-card">
+            <h4>📖 使用步骤</h4>
+            <ol>
+              <li>在下方表单中填写个人信息</li>
+              <li>点击「导出 JSON」下载数据文件</li>
+              <li>打开 Chrome 插件弹窗</li>
+              <li>点击「导入」选择刚下载的文件</li>
+              <li>进入招聘网站，点击一键填写</li>
+            </ol>
+          </div>
+
+          <!-- 侧栏广告 2 -->
+          <div class="ad-sidebar">
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+                 data-ad-slot="YOUR_AD_SLOT_5"
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+          </div>
+
+          <div class="sidebar-card">
+            <h4>⌨️ 快捷键</h4>
+            <p><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>F</kbd><br>快速触发一键填写</p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="faq" id="faq">
+    <div class="container">
+      <h2 class="section-heading">常见问题</h2>
+      <div class="faq-list">
+        <details class="faq-item">
+          <summary>插件支持哪些招聘网站？</summary>
+          <p>目前支持百度招聘（talent.baidu.com）、腾讯招聘（careers.tencent.com）、字节跳动招聘等主流平台，并且 AI 兜底机制可以适配大部分标准招聘表单。</p>
+        </details>
+        <details class="faq-item">
+          <summary>我的个人数据安全吗？</summary>
+          <p>完全安全。所有数据仅存储在你的浏览器本地（localStorage），不会上传到任何服务器。导出的 JSON 文件也仅保存在你的本地设备上。</p>
+        </details>
+        <details class="faq-item">
+          <summary>如何将网页填写的数据同步到插件？</summary>
+          <p>在网页中填写完信息后，点击「导出 JSON」按钮下载数据文件。然后打开 Chrome 插件弹窗，点击底部的「导入」按钮，选择刚下载的 JSON 文件即可。</p>
+        </details>
+        <details class="faq-item">
+          <summary>填写后表单数据不正确怎么办？</summary>
+          <p>如果自动填写结果不准确，你可以手动修正。插件会持续优化匹配规则，你也可以在 GitHub 上反馈问题。</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- 底部横幅广告 -->
+  <div class="ad-banner container">
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+         data-ad-slot="YOUR_AD_SLOT_6"
+         data-ad-format="horizontal"
+         data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </div>
+
+  <!-- 页脚 -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-col">
+          <h4>简历投递助手</h4>
+          <p>AI 驱动的浏览器插件，让求职投递更轻松高效。</p>
+        </div>
+        <div class="footer-col">
+          <h4>快速链接</h4>
+          <a href="#features">功能特性</a>
+          <a href="#editor">在线编辑</a>
+          <a href="#faq">常见问题</a>
+        </div>
+        <div class="footer-col">
+          <h4>联系我们</h4>
+          <a href="mailto:support@example.com">support@example.com</a>
+          <a href="#">GitHub</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 简历投递助手. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
